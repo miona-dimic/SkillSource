@@ -1,6 +1,8 @@
 ## SkillSource
-#In terminal change current directory to SkillSource folder
+## In terminal change current directory to SkillSource folder
     cd path../SkillSource
+## create virtual environment
+    python3 -m venv env
 
 ## activate the virtual enviornment:
     source env/bin/activate
