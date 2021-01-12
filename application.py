@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'AppkeyX'
@@ -59,7 +60,8 @@ def token_req(f):
    
     return decorated 
 
-@app.route('/jobs', methods =['GET']) 
+@app.route('/jobs', methods =['GET'])
+@cross_origin() 
 def get_jobs(): 
     jobs = Job.query.all() 
     output = [] 
@@ -75,6 +77,7 @@ def get_jobs():
     return jsonify({'job': output}) 
 
 @app.route('/user', methods =['GET']) 
+@cross_origin() 
 @token_req
 def get_users(current_user): 
     users = User.query.all() 
@@ -88,7 +91,8 @@ def get_users(current_user):
         }) 
     return jsonify({'users': output}) 
 
-@app.route('/login', methods =['POST']) 
+@app.route('/login', methods =['POST'])
+@cross_origin()  
 def login(): 
     logreq = request.form 
    
@@ -122,7 +126,8 @@ def login():
         {'WWW-Authenticate' : 'Basic realm ="Wrong Password !!"'} 
     ) 
 
-@app.route('/signup', methods =['POST']) 
+@app.route('/signup', methods =['POST'])
+@cross_origin() 
 def signup(): 
     data = request.form 
    
