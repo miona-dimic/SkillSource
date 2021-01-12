@@ -46,5 +46,3 @@
     sqlite3 database.db
     sqlite> .tables
     sqlite> select * from user;
-
-## try
