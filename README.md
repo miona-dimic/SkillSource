@@ -32,15 +32,10 @@
     required data for logIn: username and password
     this can be tested by typing the folowing command in terminal:
         curl -X POST --data "username=john_doe" --data "password=123" http://localhost:5000/login
-        #with successfull logIn access token is returned
-    
-    to initialize token immediately (to avoid multiple copy-paste in the future)
-        TOKEN=$(curl -X POST --data "username=john_doe" --data "password=123" http://localhost:5000/login | jq -r '.token')
 
 ## Get all users from database (GET request) http://localhost:5000/user
 
-    only possible for authorized users (with access token)
-    curl -H 'Accept: application/json' -H "x-access-token: ${TOKEN}" http://localhost:5000/user
+    curl -H 'Accept: application/json' http://localhost:5000/user
 
 ## Get all jobs from database (GET request) http://localhost:5000/jobs
 
@@ -53,5 +48,6 @@
     sqlite> select * from organisation;
     sqlite> select * from job;
     sqlite> select * from skill;
+    sqlite> select * from jobs_skills;
     
 
