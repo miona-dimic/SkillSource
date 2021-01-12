@@ -46,3 +46,13 @@ skill2 = Skill(name='UX')
 db.session.add(skill1)
 db.session.add(skill2)
 db.session.commit()
+
+job1.skills.append(skill1)
+job2.skills.append(skill1)
+job2.skills.append(skill2)
+job3.skills.append(skill2)
+
+db.session.add(job1)
+db.session.add(job2)
+db.session.add(job3)
+db.session.commit()

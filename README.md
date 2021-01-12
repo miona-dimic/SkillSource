@@ -45,8 +45,7 @@
 ## Get all jobs from database (GET request) http://localhost:5000/jobs
 
     curl -GET 'Accept: application/json' http://localhost:5000/jobs
-
-
+    
 ## check data in database
     sqlite3 database.db
     sqlite> .tables
