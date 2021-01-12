@@ -12,6 +12,19 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy (app)
 
+class Organisation (db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(100))
+    jobs = db.relationship('Job', backref='organisation',lazy ='dynamic')
+
+class Job (db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    title = db.Column(db.String(100))
+    description = db.Column(db.String(3000))
+    image = db.Column(db.String(200))
+    category =db.Column(db.String(100))
+    organisation_id  = db.Column(db.Integer, db.ForeignKey('organisation.id'))
+
 class User (db.Model):
     id = db.Column(db.Integer, primary_key = True) 
     public_id = db.Column(db.String(50), unique = True) 
@@ -19,6 +32,10 @@ class User (db.Model):
     username = db.Column(db.String(100), unique = True) 
     password = db.Column(db.String(80)) 
     email = db.Column(db.String(100), unique = True)
+
+class Skill (db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
 
 def token_req(f): 
     @wraps(f) 
@@ -41,6 +58,21 @@ def token_req(f):
         return  f(current_user, *args, **kwargs) 
    
     return decorated 
+
+@app.route('/jobs', methods =['GET']) 
+def get_jobs(): 
+    jobs = Job.query.all() 
+    output = [] 
+    for job in jobs: 
+        output.append({ 
+            'id': job.id,
+            'title':job.title, 
+            'description' : job.description, 
+            'image' : job.image,
+            'category': job.category,
+            'organisation_id':job.organisation_id 
+        }) 
+    return jsonify({'job': output}) 
 
 @app.route('/user', methods =['GET']) 
 @token_req
