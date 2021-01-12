@@ -1,6 +1,6 @@
 ## SkillSource
-#In terminal change current directory to skillSource folder
-    cd path../skillSource
+#In terminal change current directory to SkillSource folder
+    cd path../SkillSource
 
 ## activate the virtual enviornment:
     source env/bin/activate
