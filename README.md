@@ -42,7 +42,7 @@
     only possible for authorized users (with access token)
     curl -H 'Accept: application/json' -H "x-access-token: ${TOKEN}" http://localhost:5000/user
 
-# #Get all jobs from database (GET request) http://localhost:5000/jobs
+## Get all jobs from database (GET request) http://localhost:5000/jobs
 
     curl -GET 'Accept: application/json' http://localhost:5000/jobs
 
