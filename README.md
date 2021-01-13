@@ -56,7 +56,6 @@
     sqlite> select * from skill;
     sqlite> select * from jobs_skills;
     sqlite> select * from  individual_skill;
-    sqlite> select * from users_skills;
 
 
 

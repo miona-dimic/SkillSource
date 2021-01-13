@@ -18,11 +18,6 @@ job_skills = db.Table('jobs_skills',
                       db.Column('job_id', db.Integer, db.ForeignKey('job.id')),
                       db.Column('skill_id', db.Integer, db.ForeignKey('skill.id')))
 
-users_skills = db.Table('users_skills',
-                        db.Column('skill_id', db.Integer,
-                                  db.ForeignKey('individual_skill.id')),
-                        db.Column('user_id', db.Integer, db.ForeignKey('user.id')))
-
 class Organisation (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
@@ -38,6 +33,10 @@ class Job (db.Model):
     skills = db.relationship('Skill', secondary=job_skills,
                              backref=db.backref('jobs'), lazy='dynamic')
 
+class Skill (db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+
 class User (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String(50), unique=True)
@@ -45,13 +44,7 @@ class User (db.Model):
     username = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(80))
     email = db.Column(db.String(100), unique=True)
-    skill_id = db.Column(db.Integer, db.ForeignKey('individual_skill.id'))
-    skills = db.relationship('IndividualSkill', secondary=users_skills,
-                             backref=db.backref('users'), lazy='dynamic')
-
-class Skill (db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
+    skills = db.relationship('IndividualSkill', foreign_keys='IndividualSkill.user_id', backref=db.backref('users'), lazy='dynamic')
 
 class IndividualSkill (db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -60,7 +53,7 @@ class IndividualSkill (db.Model):
     skill = db.relationship('Skill')
     rating = db.Column(db.String(100))
     change = db.Column(db.String(100))
-
+    # users = db.relationship('User', foreign_keys='IndividualSkill.user_id', backref=db.backref('skills', lazy='dynamic'))
 
 @app.route('/jobs', methods=['GET'])
 @cross_origin()
@@ -96,7 +89,8 @@ def get_users():
             'public_id': user.public_id,
             'email': user.email,
             'name': user.name,
-            'username': user.username
+            'username': user.username,
+            'password': user.password
         })
     return jsonify({'users': output})
 
@@ -152,7 +146,7 @@ def login():
         )
 
     if check_password_hash(user.password, logreq.get('password')):
-        return make_response('Successfull log in. Welcome ' + user.name +'! ', 201)
+        return make_response('Successfull log in. Welcome ' + user.name + '! ', 201)
 
     return make_response(
         'Could not verify',
