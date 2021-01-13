@@ -40,14 +40,25 @@
 ## Get all jobs from database (GET request) http://localhost:5000/jobs
 
     curl -GET 'Accept: application/json' http://localhost:5000/jobs
+
+## Get user together with his skills from database (GET request) http://localhost:5000/user/id
+    public id from user is sent within request
+    example:
+         curl -GET 'Accept: application/json' http://localhost:5000/user/7d06935a-56ef-4499-be7e-77445f544a11
     
 ## check data in database
     sqlite3 database.db
     sqlite> .tables
+    sqlite> .header on
     sqlite> select * from user;
     sqlite> select * from organisation;
     sqlite> select * from job;
     sqlite> select * from skill;
     sqlite> select * from jobs_skills;
+    sqlite> select * from  individual_skill;
+    sqlite> select * from users_skills;
+
+
+
     
 

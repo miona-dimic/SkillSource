@@ -61,28 +61,6 @@ class IndividualSkill (db.Model):
     rating = db.Column(db.String(100))
     change = db.Column(db.String(100))
 
-def token_req(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
-        if not token:
-            return jsonify({'message': 'Token is missing !!'}), 401
-
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'])
-            current_user = User.query\
-                .filter_by(public_id=data['public_id'])\
-                .first()
-        except:
-            return jsonify({
-                'message': 'Token is invalid !!'
-            }), 401
-        return f(current_user, *args, **kwargs)
-
-    return decorated
-
 
 @app.route('/jobs', methods=['GET'])
 @cross_origin()
@@ -110,8 +88,7 @@ def get_jobs():
 
 @app.route('/user', methods=['GET'])
 @cross_origin()
-@token_req
-def get_users(current_user):
+def get_users():
     users = User.query.all()
     output = []
     for user in users:
@@ -125,8 +102,7 @@ def get_users(current_user):
 
 @app.route('/user/<id>', methods=['GET'])
 @cross_origin()
-@token_req
-def get_user(current_user, id):
+def get_user(id):
     user = User.query.filter_by(public_id=id).first()
     if not user:
         return make_response(
@@ -176,12 +152,7 @@ def login():
         )
 
     if check_password_hash(user.password, logreq.get('password')):
-        token = jwt.encode({
-            'public_id': user.public_id,
-            'exp': datetime.utcnow() + timedelta(minutes=30)
-        }, app.config['SECRET_KEY'])
-
-        return make_response(jsonify({'token': token.decode('UTF-8')}), 201)
+        return make_response('Successfull log in. Welcome ' + user.name +'! ', 201)
 
     return make_response(
         'Could not verify',
