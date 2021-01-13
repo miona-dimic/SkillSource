@@ -13,17 +13,20 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
+# Models
+job_skills = db.Table('jobs_skills',
+                      db.Column('job_id', db.Integer, db.ForeignKey('job.id')),
+                      db.Column('skill_id', db.Integer, db.ForeignKey('skill.id')))
+
+users_skills = db.Table('users_skills',
+                        db.Column('skill_id', db.Integer,
+                                  db.ForeignKey('individual_skill.id')),
+                        db.Column('user_id', db.Integer, db.ForeignKey('user.id')))
 
 class Organisation (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     jobs = db.relationship('Job', backref='organisation', lazy='dynamic')
-
-
-job_skills = db.Table('jobs_skills',
-                      db.Column('job_id', db.Integer, db.ForeignKey('job.id')),
-                      db.Column('skill_id', db.Integer, db.ForeignKey('skill.id')))
-
 
 class Job (db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,8 +36,7 @@ class Job (db.Model):
     category = db.Column(db.String(100))
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'))
     skills = db.relationship('Skill', secondary=job_skills,
-                            backref=db.backref('jobs'), lazy='dynamic')
-
+                             backref=db.backref('jobs'), lazy='dynamic')
 
 class User (db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,11 +45,44 @@ class User (db.Model):
     username = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(80))
     email = db.Column(db.String(100), unique=True)
-
+    skill_id = db.Column(db.Integer, db.ForeignKey('individual_skill.id'))
+    skills = db.relationship('IndividualSkill', secondary=users_skills,
+                             backref=db.backref('users'), lazy='dynamic')
 
 class Skill (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
+
+class IndividualSkill (db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id'))
+    skill = db.relationship('Skill')
+    rating = db.Column(db.String(100))
+    change = db.Column(db.String(100))
+
+def token_req(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+        if not token:
+            return jsonify({'message': 'Token is missing !!'}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+            current_user = User.query\
+                .filter_by(public_id=data['public_id'])\
+                .first()
+        except:
+            return jsonify({
+                'message': 'Token is invalid !!'
+            }), 401
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
 
 @app.route('/jobs', methods=['GET'])
 @cross_origin()
@@ -72,9 +107,11 @@ def get_jobs():
         })
     return jsonify({'job': output})
 
+
 @app.route('/user', methods=['GET'])
 @cross_origin()
-def get_users():
+@token_req
+def get_users(current_user):
     users = User.query.all()
     output = []
     for user in users:
@@ -86,6 +123,36 @@ def get_users():
         })
     return jsonify({'users': output})
 
+@app.route('/user/<id>', methods=['GET'])
+@cross_origin()
+@token_req
+def get_user(current_user, id):
+    user = User.query.filter_by(public_id=id).first()
+    if not user:
+        return make_response(
+            'Not Found',
+            404
+        )
+        
+    skills = []
+    for skill in user.skills.all():
+        skills.append({
+            'id': skill.id,
+            'skill_id': skill.skill_id,
+            'skill_name': skill.skill.name,
+            'rating': skill.rating,
+            'change': skill.change
+        })
+
+    output = {
+        'public_id': user.public_id,
+        'email': user.email,
+        'name': user.name,
+        'username': user.username,
+        'skills': skills
+    }
+
+    return jsonify({'user': output})
 
 @app.route('/login', methods=['POST'])
 @cross_origin()
@@ -109,7 +176,12 @@ def login():
         )
 
     if check_password_hash(user.password, logreq.get('password')):
-        return make_response('Successfull log in. Welcome ' + user.name, 201)
+        token = jwt.encode({
+            'public_id': user.public_id,
+            'exp': datetime.utcnow() + timedelta(minutes=30)
+        }, app.config['SECRET_KEY'])
+
+        return make_response(jsonify({'token': token.decode('UTF-8')}), 201)
 
     return make_response(
         'Could not verify',

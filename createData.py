@@ -1,6 +1,6 @@
 from application import db
 from application import Organisation
-from application import Job
+from application import Job, IndividualSkill
 from application import User
 from application import Skill
 import uuid
@@ -13,7 +13,7 @@ maria = User(
             name = 'Maria Johnson', 
             email = 'maria.john@example.com',
             username = 'maria123', 
-            password = generate_password_hash('maria123') 
+            password = generate_password_hash('maria123')
         ) 
 db.session.add(maria)
 db.session.commit()
@@ -55,4 +55,10 @@ job3.skills.append(skill2)
 db.session.add(job1)
 db.session.add(job2)
 db.session.add(job3)
+db.session.commit()
+
+userSkill = IndividualSkill(skill_id=skill1.id, user_id=maria.id, rating='3/5', change='+1')
+maria.skills.append(userSkill)
+db.session.add(userSkill)
+db.session.add(maria)
 db.session.commit()
